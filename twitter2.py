@@ -14,17 +14,11 @@ ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE
 
 def twit(user):
-    while True:
-            acct = user
-            if len(acct) < 1:
-                break
-            url = twurl.augment(TWITTER_URL,
-                                {'screen_name': acct, 'count': '100'})
-            print('Retrieving', url)
-            connection = urllib.request.urlopen(url, context=ctx)
-            data = connection.read().decode()
-            js = json.loads(data)
-            with open('twit.json', 'w') as f:
-                json.dump(js, f,  ensure_ascii=False, indent=4)
-                y = json.dumps(js, indent = 2)
-            return js
+    acct = user
+    url = twurl.augment(TWITTER_URL,
+                        {'screen_name': acct, 'count': '100'})
+    print('Retrieving', url)
+    connection = urllib.request.urlopen(url, context=ctx)
+    data = connection.read().decode()
+    js = json.loads(data)
+    return js
