@@ -1,12 +1,15 @@
-from twitter2 import twit
+import twitter2
 import folium
+import certifi
+import ssl
+import geopy
 from geopy.geocoders import Nominatim
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
 
-@app.route("/", methods = ["GET"])
+@app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
 
@@ -27,7 +30,10 @@ def location(locations):
     """
     function returns latitude and longitude from location name
     """
-    geo = Nominatim(user_agent="main.py")
+    ctx = ssl.create_default_context(cafile=certifi.where())
+    geopy.geocoders.options.default_ssl_context = ctx
+
+    geo = Nominatim(user_agent="map_main.py", timeout=10)
     location1 = geo.geocode(locations)
     return location1.latitude, location1.longitude
 
@@ -35,7 +41,7 @@ def location(locations):
 @app.route("/map", methods=["POST"])
 def map1():
     user_name = str(request.form['name'])
-    json_dct = twit(user_name)
+    json_dct = twitter2.twit(user_name)
     lst = []
     lst1 = []
     # with open("twit.json", 'r', encoding='utf-8') as f:
@@ -63,7 +69,8 @@ def map1():
 
     return render_template('map.html', **contex)
 
+
 if __name__ == '__main__':
-    app.run(debug = True, port=3000)
+    app.run(debug=True, port=3000)
 
 map1()
