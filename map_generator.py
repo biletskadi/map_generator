@@ -14,15 +14,10 @@ def index():
     return render_template("index.html")
 
 
-def recursively_parse_json(input_json, target_key, s=set()):
-    if type(input_json) is dict:
-        for key in input_json:
-            if key == target_key:
-                s.add((input_json['name'], input_json[key], input_json['screen_name']))
-            recursively_parse_json(input_json[key], target_key)
-    elif type(input_json) is list:
-        for entity in input_json:
-            recursively_parse_json(entity, target_key)
+def recursively_parse_json(input_json):
+    s = set()
+    for key in input_json['users']:
+        s.add((key['name'], key['screen_name'], key['location']))
     return s
 
 
@@ -41,20 +36,23 @@ def location(locations):
 @app.route("/map", methods=["POST"])
 def map1():
     user_name = str(request.form['name'])
+    print(user_name)
     json_dct = twitter2.twit(user_name)
     lst = []
     lst1 = []
     # with open("twit.json", 'r', encoding='utf-8') as f:
     #     data = json.load(f)
-    x = list(recursively_parse_json(json_dct, "location"))
+    x = list(recursively_parse_json(json_dct))
+    print(x)
     for i in x:
-        if len(i[1]) > 1:
+        if len(i[2]) > 1:
             lst.append([i[0], i[1], i[2]])
     for i, y in enumerate(lst):
         try:
-            y.append(location(y[1]))
+            y.append(location(y[2]))
         except AttributeError:
             continue
+    print(y)
     for z in lst:
         if len(z) == 4:
             lst1.append(z)
@@ -62,7 +60,7 @@ def map1():
                    zoom_start=12)
     for i in range(len(lst1) - 1):
         tooltip = str(lst1[i][0])
-        folium.Marker([lst1[i][3][0], lst1[i][3][1]], popup=lst1[i][2], tooltip=tooltip).add_to(m)
+        folium.Marker(location=[lst1[i][3][0], lst1[i][3][1]], popup=lst1[i][1], tooltip=tooltip).add_to(m)
 
     n = m.get_root().render()
     contex = {"n": n}
@@ -72,5 +70,3 @@ def map1():
 
 if __name__ == '__main__':
     app.run(debug=True, port=3000)
-
-map1()
